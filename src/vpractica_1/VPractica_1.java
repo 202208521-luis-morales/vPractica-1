@@ -7,7 +7,7 @@ import java.util.Scanner;
 public class VPractica_1 {
 
     private static Scanner sn = new Scanner(System.in);
-    private static String[] arrWords = {"Actor", "Conejo", "Americanos", "Penexx"}; //, "Vagina", "Maduro", "Gracias", "Protestant", "Portodo"};
+    private static String[] arrWords = null;
     private static char[] arrAlphabet = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
     private static RegistroDeJuego[] registroDeJuego = new RegistroDeJuego[20];
     private static GameHistory[] gameHistory = new GameHistory[20];
@@ -106,8 +106,21 @@ public class VPractica_1 {
                                                             if (newWord.length() > 10 || newWord.length() < 5) {
                                                                 System.out.println("Error: la palabra debe de ser entre 5 y 10 caracteres. Ingrese la palabra de nuevo");
                                                             } else {
-                                                                arrWords[obtenerCasillasNoVacias(arrWords)] = newWord;
-                                                                isNewWordValid = true;
+                                                                // Método: checar si la palabra ya existe
+                                                                boolean wordAlreadyExists = false;
+                                                                for (int i = 0; i < obtenerCasillasNoVacias(arrWords); i++) {
+                                                                    if (arrWords[i].toLowerCase().equals(newWord.toLowerCase())) {
+                                                                        wordAlreadyExists = true;
+                                                                    }
+                                                                }
+
+                                                                if (!wordAlreadyExists) {
+                                                                    arrWords[obtenerCasillasNoVacias(arrWords)] = newWord;
+                                                                    isNewWordValid = true;
+                                                                    System.out.println("Palabra agregada con éxito");
+                                                                } else {
+                                                                    System.out.println("Error: la palabra ya ha sido registrada");
+                                                                }
                                                             }
                                                         }
                                                     }
@@ -146,9 +159,32 @@ public class VPractica_1 {
                                                             System.out.println("Error: El indice señalado no tiene ninguna palabra, elija uno que sí tenga palabra");
                                                             System.out.println("\n");
                                                         } else {
-                                                            System.out.println("Escriba la nueva palabra:");
-                                                            arrWords[ind] = sn.nextLine();
-                                                            System.out.println("Palabra editada con éxito");
+                                                            boolean isNewWordValid = false;
+                                                            while (!isNewWordValid) {
+                                                                System.out.println("Escriba la nueva palabra:");
+                                                                String newWord = sn.nextLine();
+
+                                                                if (newWord.length() > 10 || newWord.length() < 5) {
+                                                                    System.out.println("Error: la palabra debe de ser entre 5 y 10 caracteres. Ingrese la palabra de nuevo");
+                                                                } else {
+                                                                    // Método: checar si la palabra ya existe
+                                                                    boolean wordAlreadyExists = false;
+                                                                    for (int i = 0; i < obtenerCasillasNoVacias(arrWords); i++) {
+                                                                        if (arrWords[i].toLowerCase().equals(newWord.toLowerCase()) && !newWord.toLowerCase().equals(arrWords[ind])) {
+                                                                            wordAlreadyExists = true;
+                                                                        }
+                                                                    }
+
+                                                                    if (!wordAlreadyExists) {
+                                                                        arrWords[ind] = newWord;
+                                                                        System.out.println("Palabra editada con éxito");
+                                                                        isNewWordValid = true;
+                                                                    } else {
+                                                                        System.out.println("Error: la palabra ya ha sido registrada");
+                                                                    }
+
+                                                                }
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -235,15 +271,15 @@ public class VPractica_1 {
                                         printWords();
 
                                         System.out.println("Cuantas palabras quedan: " + howManyWordsAreLeft);
-                                        
+
                                         if (howManyWordsAreLeft > 0) {
                                             System.out.println("Escriba una palabra que vea en la sopa de letras");
                                             String insertedWord = sn.nextLine();
-                                            
+
                                             // Método: checar si la palabra es parte de la sopa de letras, si lo es se procede con lo
                                             // debido
                                             boolean doesWordExists = false;
-                                            for (int i = 0; i < arrWords.length; i++) {
+                                            for (int i = 0; i < obtenerCasillasNoVacias(arrWords); i++) {
                                                 if (arrWords[i].toLowerCase().equals(insertedWord.toLowerCase()) && !doesWordExists) {
                                                     doesWordExists = true;
                                                     indexOfFoundWord = i;
@@ -331,20 +367,24 @@ public class VPractica_1 {
                 case "2" -> {
                     System.out.println("\n");
                     System.out.println(" *** ha elegido '2) Historial de partidas'");
-                    
+
                     System.out.println("### HISTORIAL DE PARTIDAS");
                     System.out.println("");
-                    
-                    for (int i = 0; i < obtenerCasillasNoVacias(gameHistory); i++) {
-                        System.out.println("+---------------");
-                        System.out.println("| [" + i + "]");
-                        System.out.println("| __ " + (gameHistory[i].isWon() ? "GANADO" : "PERDIDO"));
-                        System.out.println("| Nombre de jugador: " + gameHistory[i].getUsername());
-                        System.out.println("| Puntaje: " + gameHistory[i].getScore());
-                        System.out.println("| Fallos: " + gameHistory[i].getFails());
-                        System.out.println("| Cantidad de palabras encontradas: " + gameHistory[i].getAmountWordsFound());
-                        System.out.println("+---------------");
-                        System.out.println("");
+
+                    if (obtenerCasillasNoVacias(gameHistory) == 0) {
+                        System.out.println("no tienes partidas hechas :(. Ve a jugar y regresa mas tarde");
+                    } else {
+                        for (int i = 0; i < obtenerCasillasNoVacias(gameHistory); i++) {
+                            System.out.println("+---------------");
+                            System.out.println("| [" + i + "]");
+                            System.out.println("| __ " + (gameHistory[i].isWon() ? "GANADO" : "PERDIDO"));
+                            System.out.println("| Nombre de jugador: " + gameHistory[i].getUsername());
+                            System.out.println("| Puntaje: " + gameHistory[i].getScore());
+                            System.out.println("| Fallos: " + gameHistory[i].getFails());
+                            System.out.println("| Cantidad de palabras encontradas: " + gameHistory[i].getAmountWordsFound());
+                            System.out.println("+---------------");
+                            System.out.println("");
+                        }
                     }
                 }
 
@@ -538,9 +578,11 @@ public class VPractica_1 {
         int tamanioMasLargo = 0;
 
         for (String str : strings) {
-            int tamanioActual = str.length();
-            if (tamanioActual > tamanioMasLargo) {
-                tamanioMasLargo = tamanioActual;
+            if (str != null) {
+                int tamanioActual = str.length();
+                if (tamanioActual > tamanioMasLargo) {
+                    tamanioMasLargo = tamanioActual;
+                }
             }
         }
 
