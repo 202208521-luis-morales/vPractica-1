@@ -3,11 +3,13 @@ package vpractica_1;
 import java.time.Duration;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class VPractica_1 {
 
     private static Scanner sn = new Scanner(System.in);
-    private static String[] arrWords = {"Puerta", "Paloo"};
+    private static String[] arrWords = {"Americanos","Actor","Conejo","Penexx","Vagina","Maduro","Gracias","Protestant","Portodo"};
     private static char[] arrAlphabet = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
     private static RegistroDeJuego[] registroDeJuego = new RegistroDeJuego[20];
     private static int[] dimensionsOfMatrix = new int[2];
@@ -206,15 +208,13 @@ public class VPractica_1 {
                                 } else {
                                     String[][] theMatrix = generateMatrix();
 
-                                    System.out.println("theMatrix en X: " + theMatrix.length);
-                                    System.out.println("theMatrix en Y: " + theMatrix[0].length);
+                                    System.out.println("X: " + theMatrix.length + "; Y: " + theMatrix[0].length);
                                     // Método: imprimir la sopa de letras
-                                    for (int i = 0; i < theMatrix.length; i++) {
+                                    for (int j = 0; j < theMatrix[0].length; j++) {
                                         System.out.println("");
-                                        for (int j = 0; j < theMatrix[0].length; j++) {
-                                            //System.out.print("|" + theMatrix[i][j]);
-                                            
-                                            if (j - 1 == theMatrix[0].length) {
+                                        for (int i = 0; i < theMatrix.length; i++) {
+                                            System.out.print("|" + theMatrix[i][j]);
+                                            if (i + 1 == theMatrix.length) {
                                                 System.out.print("|");
                                             }
                                         }
@@ -338,38 +338,57 @@ public class VPractica_1 {
             }
 
             dimensionsOfMatrix[0] = obtenerTamanioElementoMasLargo(arrWords) + 6;
-            dimensionsOfMatrix[1] = obtenerTamanioElementoMasLargo(arrWords) + (2 * yMatrixLength);
+            dimensionsOfMatrix[1] = yMatrixLength*(obtenerTamanioElementoMasLargo(arrWords) + 2);
+            System.out.println("Dimensiones de matriz: X: " + dimensionsOfMatrix[0] + "; Y: " + dimensionsOfMatrix[1]);
+            System.out.println("yMatrixLength: " + yMatrixLength);
+            System.out.println("Tamaño más largo: " + obtenerTamanioElementoMasLargo(arrWords));
             wordFindMatrix = new String[dimensionsOfMatrix[0]][dimensionsOfMatrix[1]];
 
             int xCounter = 0;
             // PARA LAS PALABRAS HORIZONTALES
             for (int i = 0; i < dimensionsOfMatrix[1]; i++) { // Y
                 for (int j = 4; j < dimensionsOfMatrix[0]; j++) { // X
-                    if (i % 2 == 0 && obtenerElSiguienteIndexDeMatriz(wordsIsReady) >= 0) { // La segunda condición básicamente chequea si hay palabras todavía para usar
+                    if (i % 2 == 0 && obtenerElSiguienteIndexDeMatriz(wordsIsReady) >= 0 && currentXIndex < arrWords.length) { // La segunda condición básicamente chequea si hay palabras todavía para usar
                         if (j == 4) {
                             addingXWord = true;
                         }
 
                         if (j >= 4 && addingXWord == true) {
-                            if ((arrWords[obtenerElSiguienteIndexDeMatriz(wordsIsReady)].length() - xCounter) == 0) {
+                            if ((arrWords[currentXIndex].length() - xCounter) == 0) {
                                 addingXWord = false;
+                                // System.out.println("currentIndexAntes: " + currentXIndex);
                                 wordsIsReady[currentXIndex] = "y";
                                 currentXIndex++;
                                 xCounter = 0;
                                 wordFindMatrix[j][i] = Character.toString(arrAlphabet[random.nextInt(arrAlphabet.length)]);
 
-                                if (currentXIndex % 4 == 0) {
+                                /*
+                                System.out.println("Test Counter: " + testCounter);
+                                System.out.println("currentIndexDespués: " + currentXIndex);
+                                System.out.println("Opt: " + currentXIndex % 4);
+                                testCounter++;
+                                */
+                                System.out.println("--- WIR");
+                                for (String string : wordsIsReady) {
+                                    System.out.println(string);
+                                }
+                                System.out.println("---");
+                                
+                                
+                                if ((currentXIndex+1) % 4 == 0) {
                                     currentXIndex++;
+
                                 }
                             } else {
                                 if (xCounter == 0) {
                                     registroDeJuego[obtenerPrimeraCasillaDisponible(registroDeJuego)] = new RegistroDeJuego(j, i, currentXIndex, false);
                                 }
-                                System.out.println("A");
-                                System.out.println("Coordenadas: x: " + j + "; j: " + i);
-                                wordFindMatrix[j][i] = Character.toString(arrWords[obtenerElSiguienteIndexDeMatriz(wordsIsReady)].charAt(xCounter)).toUpperCase();
+
                                 
-                                
+                                System.out.println("Word: " + arrWords[currentXIndex]);
+                                System.out.println("CurrentX: " + currentXIndex);
+                                wordFindMatrix[j][i] = Character.toString(arrWords[currentXIndex].charAt(xCounter)).toUpperCase();
+
                                 xCounter++;
                             }
                         } else {
@@ -380,41 +399,60 @@ public class VPractica_1 {
                     }
                 }
             }
+            
 
             int currentYIndex = obtenerElSiguienteIndexDeMatriz(wordsIsReady);
             int yCounter = 0;
             int yNextPosition = 0;
+            int testIndex = 0;
             // PARA LAS PALABRAS VERTICALES
             addingYWord = true;
             for (int i = 0; i < 4; i++) { // X
                 for (int j = 0; j < dimensionsOfMatrix[1]; j++) { // Y
+                    testIndex++;
+                    // System.out.println(currentYIndex);
                     if (i % 2 == 0 && obtenerElSiguienteIndexDeMatriz(wordsIsReady) >= 0) {
+                        System.out.println("A");
                         if (addingYWord == true) {
+                            System.out.println("B");
                             if ((arrWords[currentYIndex].length() - yCounter) == 0) {
+                                System.out.println("C");
                                 addingYWord = false;
                                 wordsIsReady[currentYIndex] = "y";
                                 currentYIndex = obtenerElSiguienteIndexDeMatriz(wordsIsReady);
                                 yCounter = 0;
                                 yNextPosition = j + 3;
+                                wordFindMatrix[i][j] = Character.toString(arrAlphabet[random.nextInt(arrAlphabet.length)]);
                             } else {
+                                System.out.println("D");
                                 if (yCounter == 0) {
+                                    System.out.println("E");
                                     registroDeJuego[obtenerPrimeraCasillaDisponible(registroDeJuego)] = new RegistroDeJuego(i, j, currentYIndex, false);
                                 }
-
-                                wordFindMatrix[i][j] = Character.toString(arrWords[currentYIndex].charAt(yCounter++)).toUpperCase();
+                                
+                                wordFindMatrix[i][j] = Character.toString(arrWords[currentYIndex].charAt(yCounter)).toUpperCase();
+                                // wordFindMatrix[i][j] = arrWords[currentYIndex].toUpperCase();
+                                System.out.println("Coordenadas: X: " + i + "; Y: " + j);
                                 yCounter++;
                             }
                         } else {
+                            System.out.println("F");
                             if ((j == yNextPosition) && currentYIndex % 10 != 0) {
+                                System.out.println("G");
                                 addingYWord = true;
                             }
+                            System.out.println("Coordenadas: X: " + i + "; Y: " + j);
                             wordFindMatrix[i][j] = Character.toString(arrAlphabet[random.nextInt(arrAlphabet.length)]);
                         }
                     } else {
+                        System.out.println("H");
+                        System.out.println("Coordenadas: X: " + i + "; Y: " + j);
                         wordFindMatrix[i][j] = Character.toString(arrAlphabet[random.nextInt(arrAlphabet.length)]);
                     }
                 }
             }
+            
+            System.out.println(testIndex);
         }
 
         return wordFindMatrix;
