@@ -1,17 +1,16 @@
 package vpractica_1;
 
-import java.time.Duration;
+import java.util.Objects;
 import java.util.Random;
 import java.util.Scanner;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class VPractica_1 {
 
     private static Scanner sn = new Scanner(System.in);
-    private static String[] arrWords = {"Americanos","Actor","Conejo","Penexx","Vagina","Maduro","Gracias","Protestant","Portodo"};
+    private static String[] arrWords = {"Actor", "Conejo", "Americanos", "Penexx"}; //, "Vagina", "Maduro", "Gracias", "Protestant", "Portodo"};
     private static char[] arrAlphabet = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
     private static RegistroDeJuego[] registroDeJuego = new RegistroDeJuego[20];
+    private static GameHistory[] gameHistory = new GameHistory[20];
     private static int[] dimensionsOfMatrix = new int[2];
 
     public static void main(String[] args) {
@@ -32,10 +31,13 @@ public class VPractica_1 {
 
             switch (opt1Selected) {
                 case "1" -> {
+                    String username;
                     boolean goToPrincipalMenuIsSelected = false;
 
                     System.out.println("\n");
                     System.out.println(" *** ha elegido '1) Nueva Partida'");
+                    System.out.println("Escriba su nombre de usuario");
+                    username = sn.nextLine();
 
                     while (!goToPrincipalMenuIsSelected) {
                         System.out.println("\n");
@@ -200,6 +202,9 @@ public class VPractica_1 {
                             case "2" -> {
                                 System.out.println("\n");
                                 System.out.println(" *** ha elegido '2) Jugar'");
+                                GameHistory thisGame = new GameHistory(username, 20, 0, 0, exitIsSelected);
+                                limpiarArrRegistroDeJuego();
+                                int remainTrys = 3;
 
                                 if (arrWords == null || obtenerCasillasNoVacias(arrWords) == 0) {
                                     System.out.println("\n");
@@ -209,16 +214,109 @@ public class VPractica_1 {
                                     String[][] theMatrix = generateMatrix();
 
                                     System.out.println("X: " + theMatrix.length + "; Y: " + theMatrix[0].length);
-                                    // Método: imprimir la sopa de letras
-                                    for (int j = 0; j < theMatrix[0].length; j++) {
-                                        System.out.println("");
-                                        for (int i = 0; i < theMatrix.length; i++) {
-                                            System.out.print("|" + theMatrix[i][j]);
-                                            if (i + 1 == theMatrix.length) {
-                                                System.out.print("|");
+
+                                    boolean isGameFinished = false;
+                                    while (!isGameFinished) {
+                                        int indexOfFoundWord = -1;
+                                        int indexOfRegister = -1;
+                                        int howManyWordsAreLeft = obtenerNumeroElementosFalse();
+
+                                        // Método: imprimir la sopa de letras
+                                        for (int j = 0; j < theMatrix[0].length; j++) {
+                                            System.out.println("");
+                                            for (int i = 0; i < theMatrix.length; i++) {
+                                                System.out.print("|" + theMatrix[i][j]);
+                                                if (i + 1 == theMatrix.length) {
+                                                    System.out.print("|");
+                                                }
                                             }
                                         }
+
+                                        printWords();
+
+                                        System.out.println("Cuantas palabras quedan: " + howManyWordsAreLeft);
+                                        
+                                        if (howManyWordsAreLeft > 0) {
+                                            System.out.println("Escriba una palabra que vea en la sopa de letras");
+                                            String insertedWord = sn.nextLine();
+                                            
+                                            // Método: checar si la palabra es parte de la sopa de letras, si lo es se procede con lo
+                                            // debido
+                                            boolean doesWordExists = false;
+                                            for (int i = 0; i < arrWords.length; i++) {
+                                                if (arrWords[i].toLowerCase().equals(insertedWord.toLowerCase()) && !doesWordExists) {
+                                                    doesWordExists = true;
+                                                    indexOfFoundWord = i;
+                                                }
+                                            }
+
+                                            if (indexOfFoundWord >= 0) {
+                                                // Método: buscar en el array registroJuego la palabra a cambiar por $$$ con el index encontrado
+
+                                                for (int i = 0; i < obtenerCasillasNoVacias(registroDeJuego); i++) {
+                                                    if (registroDeJuego[i].getIndiceDePalabra() == indexOfFoundWord && indexOfRegister < 0) {
+                                                        indexOfRegister = i;
+                                                    }
+                                                }
+
+                                                if (indexOfRegister >= 0) {
+                                                    if (!registroDeJuego[indexOfRegister].isCompletada()) {
+                                                        thisGame.setScore(thisGame.getScore() + arrWords[indexOfFoundWord].length());
+                                                        thisGame.setAmountWordsFound(thisGame.getAmountWordsFound() + 1);
+                                                        registroDeJuego[indexOfRegister].setCompletada(true);
+
+                                                        System.out.println("\n");
+                                                        System.out.println("/()/()/()/()/()/()");
+                                                        System.out.println("/()/() CORRECTO! La palabra ingresada es correcta. Felicidades!");
+                                                        System.out.println("/()/()/()/()/()/()");
+                                                        System.out.println("\n");
+
+                                                        // Método: modificar la matriz de la sopa de letras
+                                                        if (registroDeJuego[indexOfRegister].isHorizontal) {
+                                                            for (int i = registroDeJuego[indexOfRegister].getX(); i < (arrWords[indexOfFoundWord].length() + registroDeJuego[indexOfRegister].getX()); i++) {
+                                                                theMatrix[i][registroDeJuego[indexOfRegister].getY()] = "$";
+                                                            }
+                                                        } else {
+                                                            for (int i = registroDeJuego[indexOfRegister].getY(); i < (arrWords[indexOfFoundWord].length() + registroDeJuego[indexOfRegister].getY()); i++) {
+                                                                theMatrix[registroDeJuego[indexOfRegister].getX()][i] = "$";
+                                                            }
+                                                        }
+                                                    } else {
+                                                        System.out.println("\n");
+                                                        System.out.println("/()/()/()/()/()/()");
+                                                        System.out.println("/()/() Esta palabra ya fue ingresada. No se tomará como incorrecto, vuelva a intentarlo");
+                                                        System.out.println("/()/()/()/()/()/()");
+                                                        System.out.println("\n");
+                                                    }
+
+                                                } else {
+                                                    System.out.println("#ERROR 500");
+                                                }
+                                            } else {
+                                                System.out.println("\n");
+                                                System.out.println("/()/()/()/()/()/()");
+                                                System.out.println("/()/() INCORRECTO! La palabra ingresada no es correcta. Intentelo de nuevo");
+                                                System.out.println("/()/()/()/()/()/()");
+                                                System.out.println("\n");
+                                                remainTrys--;
+                                                thisGame.setScore(thisGame.getScore() - 5);
+                                                thisGame.setFails(thisGame.getFails() + 1);
+
+                                                if (remainTrys == 0) {
+                                                    isGameFinished = true;
+                                                    System.out.println("No mas intentos. Has perdido :(");
+                                                    thisGame.setWon(false);
+                                                }
+                                            }
+                                        } else {
+                                            isGameFinished = true;
+                                            System.out.println("Felicidades!!! Has Ganado");
+                                            thisGame.setWon(true);
+                                        }
+
                                     }
+
+                                    gameHistory[obtenerSiguienteIndexDeGameHistory()] = thisGame;
                                 }
 
                             }
@@ -233,6 +331,21 @@ public class VPractica_1 {
                 case "2" -> {
                     System.out.println("\n");
                     System.out.println(" *** ha elegido '2) Historial de partidas'");
+                    
+                    System.out.println("### HISTORIAL DE PARTIDAS");
+                    System.out.println("");
+                    
+                    for (int i = 0; i < obtenerCasillasNoVacias(gameHistory); i++) {
+                        System.out.println("+---------------");
+                        System.out.println("| [" + i + "]");
+                        System.out.println("| __ " + (gameHistory[i].isWon() ? "GANADO" : "PERDIDO"));
+                        System.out.println("| Nombre de jugador: " + gameHistory[i].getUsername());
+                        System.out.println("| Puntaje: " + gameHistory[i].getScore());
+                        System.out.println("| Fallos: " + gameHistory[i].getFails());
+                        System.out.println("| Cantidad de palabras encontradas: " + gameHistory[i].getAmountWordsFound());
+                        System.out.println("+---------------");
+                        System.out.println("");
+                    }
                 }
 
                 case "3" -> {
@@ -244,6 +357,7 @@ public class VPractica_1 {
                     System.out.println(" Nombre: Luis Rodrigo Morales Florián");
                     System.out.println(" Carnet: 202208521");
                     System.out.println(" Sección: P");
+                    System.out.println("---");
                 }
 
                 case "4" -> {
@@ -277,18 +391,18 @@ public class VPractica_1 {
         }
     }
 
-    private static int obtenerCasillasNoVacias(String[] array) {
-        int contador = -1; // Inicializar contador
+    private static void limpiarArrRegistroDeJuego() {
+        registroDeJuego = new RegistroDeJuego[20];
+    }
 
-        if (array != null) {
-            contador = 0;
-            for (int i = 0; i < array.length; i++) {
-                if (array[i] != null) {
-                    contador++;
-                }
+    private static <T> int obtenerCasillasNoVacias(T[] array) {
+        int contador = 0;
+
+        for (T elemento : array) {
+            if (!Objects.isNull(elemento)) {
+                contador++;
             }
         }
-
         return contador;
     }
 
@@ -338,10 +452,7 @@ public class VPractica_1 {
             }
 
             dimensionsOfMatrix[0] = obtenerTamanioElementoMasLargo(arrWords) + 6;
-            dimensionsOfMatrix[1] = yMatrixLength*(obtenerTamanioElementoMasLargo(arrWords) + 2);
-            System.out.println("Dimensiones de matriz: X: " + dimensionsOfMatrix[0] + "; Y: " + dimensionsOfMatrix[1]);
-            System.out.println("yMatrixLength: " + yMatrixLength);
-            System.out.println("Tamaño más largo: " + obtenerTamanioElementoMasLargo(arrWords));
+            dimensionsOfMatrix[1] = yMatrixLength * (obtenerTamanioElementoMasLargo(arrWords) + 2);
             wordFindMatrix = new String[dimensionsOfMatrix[0]][dimensionsOfMatrix[1]];
 
             int xCounter = 0;
@@ -356,37 +467,19 @@ public class VPractica_1 {
                         if (j >= 4 && addingXWord == true) {
                             if ((arrWords[currentXIndex].length() - xCounter) == 0) {
                                 addingXWord = false;
-                                // System.out.println("currentIndexAntes: " + currentXIndex);
                                 wordsIsReady[currentXIndex] = "y";
                                 currentXIndex++;
                                 xCounter = 0;
                                 wordFindMatrix[j][i] = Character.toString(arrAlphabet[random.nextInt(arrAlphabet.length)]);
 
-                                /*
-                                System.out.println("Test Counter: " + testCounter);
-                                System.out.println("currentIndexDespués: " + currentXIndex);
-                                System.out.println("Opt: " + currentXIndex % 4);
-                                testCounter++;
-                                */
-                                System.out.println("--- WIR");
-                                for (String string : wordsIsReady) {
-                                    System.out.println(string);
-                                }
-                                System.out.println("---");
-                                
-                                
-                                if ((currentXIndex+1) % 4 == 0) {
+                                if ((currentXIndex + 1) % 4 == 0) {
                                     currentXIndex++;
-
                                 }
                             } else {
                                 if (xCounter == 0) {
-                                    registroDeJuego[obtenerPrimeraCasillaDisponible(registroDeJuego)] = new RegistroDeJuego(j, i, currentXIndex, false);
+                                    registroDeJuego[obtenerPrimeraCasillaDisponible(registroDeJuego)] = new RegistroDeJuego(j, i, currentXIndex, false, true);
                                 }
 
-                                
-                                System.out.println("Word: " + arrWords[currentXIndex]);
-                                System.out.println("CurrentX: " + currentXIndex);
                                 wordFindMatrix[j][i] = Character.toString(arrWords[currentXIndex].charAt(xCounter)).toUpperCase();
 
                                 xCounter++;
@@ -399,24 +492,18 @@ public class VPractica_1 {
                     }
                 }
             }
-            
 
             int currentYIndex = obtenerElSiguienteIndexDeMatriz(wordsIsReady);
             int yCounter = 0;
             int yNextPosition = 0;
-            int testIndex = 0;
             // PARA LAS PALABRAS VERTICALES
             addingYWord = true;
             for (int i = 0; i < 4; i++) { // X
                 for (int j = 0; j < dimensionsOfMatrix[1]; j++) { // Y
-                    testIndex++;
                     // System.out.println(currentYIndex);
                     if (i % 2 == 0 && obtenerElSiguienteIndexDeMatriz(wordsIsReady) >= 0) {
-                        System.out.println("A");
                         if (addingYWord == true) {
-                            System.out.println("B");
                             if ((arrWords[currentYIndex].length() - yCounter) == 0) {
-                                System.out.println("C");
                                 addingYWord = false;
                                 wordsIsReady[currentYIndex] = "y";
                                 currentYIndex = obtenerElSiguienteIndexDeMatriz(wordsIsReady);
@@ -424,35 +511,24 @@ public class VPractica_1 {
                                 yNextPosition = j + 3;
                                 wordFindMatrix[i][j] = Character.toString(arrAlphabet[random.nextInt(arrAlphabet.length)]);
                             } else {
-                                System.out.println("D");
                                 if (yCounter == 0) {
-                                    System.out.println("E");
-                                    registroDeJuego[obtenerPrimeraCasillaDisponible(registroDeJuego)] = new RegistroDeJuego(i, j, currentYIndex, false);
+                                    registroDeJuego[obtenerPrimeraCasillaDisponible(registroDeJuego)] = new RegistroDeJuego(i, j, currentYIndex, false, false);
                                 }
-                                
+
                                 wordFindMatrix[i][j] = Character.toString(arrWords[currentYIndex].charAt(yCounter)).toUpperCase();
-                                // wordFindMatrix[i][j] = arrWords[currentYIndex].toUpperCase();
-                                System.out.println("Coordenadas: X: " + i + "; Y: " + j);
                                 yCounter++;
                             }
                         } else {
-                            System.out.println("F");
                             if ((j == yNextPosition) && currentYIndex % 10 != 0) {
-                                System.out.println("G");
                                 addingYWord = true;
                             }
-                            System.out.println("Coordenadas: X: " + i + "; Y: " + j);
                             wordFindMatrix[i][j] = Character.toString(arrAlphabet[random.nextInt(arrAlphabet.length)]);
                         }
                     } else {
-                        System.out.println("H");
-                        System.out.println("Coordenadas: X: " + i + "; Y: " + j);
                         wordFindMatrix[i][j] = Character.toString(arrAlphabet[random.nextInt(arrAlphabet.length)]);
                     }
                 }
             }
-            
-            System.out.println(testIndex);
         }
 
         return wordFindMatrix;
@@ -471,6 +547,19 @@ public class VPractica_1 {
         return tamanioMasLargo;
     }
 
+    private static int obtenerNumeroElementosFalse() {
+        int contador = 0;
+        for (RegistroDeJuego elemento : registroDeJuego) {
+            if (elemento != null) {
+                if (!elemento.isCompletada()) {
+                    contador++;
+                }
+            }
+
+        }
+        return contador;
+    }
+
     private static int obtenerElSiguienteIndexDeMatriz(String[] mat) {
         int isAvailable = -1;
         boolean isFound = false;
@@ -485,6 +574,18 @@ public class VPractica_1 {
         return isAvailable;
     }
 
+    private static int obtenerSiguienteIndexDeGameHistory() {
+        int nextIndex = -1;
+
+        for (int i = 0; i < gameHistory.length; i++) {
+            if (gameHistory[i] == null && nextIndex < 0) {
+                nextIndex = i;
+            }
+        }
+
+        return nextIndex;
+    }
+
     private static int obtenerGrupo(int numero) {
         int rango = 8; // Cantidad de números en cada grupo
         int grupo = (numero / rango) + 1; // Obtener el grupo correspondiente
@@ -497,12 +598,14 @@ public class VPractica_1 {
         private int y;
         private int indiceDePalabra;
         private boolean completada;
+        private boolean isHorizontal;
 
-        public RegistroDeJuego(int x, int y, int indiceDePalabra, boolean completada) {
+        public RegistroDeJuego(int x, int y, int indiceDePalabra, boolean completada, boolean isHorizontal) {
             this.x = x;
             this.y = y;
             this.indiceDePalabra = indiceDePalabra;
             this.completada = completada;
+            this.isHorizontal = isHorizontal;
         }
 
         public int getX() {
@@ -535,6 +638,72 @@ public class VPractica_1 {
 
         public void setCompletada(boolean completada) {
             this.completada = completada;
+        }
+
+        public boolean isHorizontal() {
+            return isHorizontal;
+        }
+
+        public void setIsHorizontal(boolean isHorizontal) {
+            this.isHorizontal = isHorizontal;
+        }
+
+    }
+
+    private static class GameHistory {
+
+        private String username;
+        private int score;
+        private int fails;
+        private int amountWordsFound;
+        private boolean won;
+
+        public GameHistory(String username, int score, int fails, int amountWordsFound, boolean won) {
+            this.username = username;
+            this.score = score;
+            this.fails = fails;
+            this.amountWordsFound = amountWordsFound;
+            this.won = won;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public int getScore() {
+            return score;
+        }
+
+        public void setScore(int score) {
+            this.score = score;
+        }
+
+        public int getFails() {
+            return fails;
+        }
+
+        public void setFails(int fails) {
+            this.fails = fails;
+        }
+
+        public int getAmountWordsFound() {
+            return amountWordsFound;
+        }
+
+        public void setAmountWordsFound(int amountWordsFound) {
+            this.amountWordsFound = amountWordsFound;
+        }
+
+        public boolean isWon() {
+            return won;
+        }
+
+        public void setWon(boolean won) {
+            this.won = won;
         }
 
     }
